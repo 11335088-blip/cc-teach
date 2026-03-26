@@ -487,3 +487,21 @@ class TestModelListByYearAfter(ListView):
     model = Model
     def get_queryset(self):
         return Model.objects.filter(date_buy__year__gt=self.kwargs['year'])
+    
+class LogView(DetailView):
+    model = Log
+
+class TestApplicantLending(ListView):
+    model = Applicant 
+    def get_queryset(self):
+        return Applicant.objects.filter(
+            log__equip__model__date_buy__year__gte=2020,
+            log__date_apply__isnull=False, 
+            log__date_return__isnull=True
+            ).distinct()
+    
+class TestEquipLending(ListView):
+    model = Equip 
+    def get_queryset(self):
+        lending_equip_ids = Log.objects.filter(date_return__isnull=True).values_list('equip_id', flat=True)
+        return Equip.objects.filter(id__in=lending_equip_ids).select_related('model')
